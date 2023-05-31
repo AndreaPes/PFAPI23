@@ -1,0 +1,60 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.23"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "PFAPI23_pesciotti_10715428",
+					"targetIndexes" : 
+					[
+						0
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "PFAPI23_pesciotti_10715428::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-PFAPI23_pesciotti_10715428-Debug-6c55b2d546f376539b99.json",
+					"name" : "PFAPI23_pesciotti_10715428",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/andre/CLionProjects/PFAPI/PFAPI23_pesciotti_10715428/PFAPI23_pesciotti_10715428/cmake-build-debug",
+		"source" : "C:/Users/andre/CLionProjects/PFAPI/PFAPI23_pesciotti_10715428/PFAPI23_pesciotti_10715428"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 4
+	}
+}
