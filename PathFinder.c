@@ -73,12 +73,12 @@ int main() {
     while (fscanf(stdin, "%s", str) != EOF) {
         if (strcmp(str, "aggiungi-stazione") == 0) {
             unsigned int distance, number_of_vehicles;
-            fscanf(stdin, "%d %d", &distance, &number_of_vehicles);
+            fscanf(stdin, "%u %u", &distance, &number_of_vehicles);
 
             unsigned int* car_autonomy = malloc(sizeof (int) * number_of_vehicles);
 
             for(int i = 0; i < number_of_vehicles; i++){
-                fscanf(stdin, "%d", &car_autonomy[i]);
+                fscanf(stdin, "%u", &car_autonomy[i]);
             }
         } else if (strcmp(str, "demolisci-stazione") == 0) {
 
