@@ -1,0 +1,6 @@
+aggiunta
+Stazione a distanza 100:
+- Auto con autonomia 3
+- Auto con autonomia 1
+- Auto con autonomia 2
+
