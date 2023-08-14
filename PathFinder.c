@@ -2,15 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Definizione della struttura per le autovetture
+// Data structure for cars
 typedef struct Car
 {
     unsigned int *autonomy;
-    int size;
-    int capacity;
+    unsigned int size;
+    unsigned int capacity;
 } Car;
 
-// Definizione della struttura per le stazioni
+// Data structure for stations
 typedef struct Station
 {
     unsigned int distance;
@@ -19,12 +19,12 @@ typedef struct Station
     struct Station *right;
 } Station;
 
-Car *createCarHeap(unsigned int *autonomies, int num_cars);
-void insertHelper(Car *heap, int index);
-void heapifyDown(Car *heap, int index);
+Car *createCarHeap(const unsigned int *autonomies, unsigned int num_cars);
+void insertHelper(Car *heap, unsigned int index);
+void heapifyDown(Car *heap, unsigned int index);
 
-// Funzione per creare un nuovo nodo per le stazioni
-Station *createStationNode(int distance, Car *heap)
+// Creates a new node of the tree for the station
+Station *createStationNode(Car *heap, unsigned int distance)
 {
     Station *newStation = (Station *)malloc(sizeof(Station));
     newStation->distance = distance;
@@ -34,7 +34,7 @@ Station *createStationNode(int distance, Car *heap)
     return newStation;
 }
 
-Car *createCarHeap(unsigned int *autonomies, int num_cars)
+Car *createCarHeap(const unsigned int *autonomies, unsigned int num_cars)
 {
 
     Car *car_heap = (Car *)malloc(sizeof(Car));
@@ -42,7 +42,7 @@ Car *createCarHeap(unsigned int *autonomies, int num_cars)
     car_heap->size = 0;
     car_heap->capacity = num_cars;
 
-    car_heap->autonomy = (int *)malloc(num_cars * sizeof(int));
+    car_heap->autonomy = (unsigned int*)malloc(num_cars * sizeof(int));
 
     int i;
     for (i = 0; i < num_cars; i++)
@@ -51,7 +51,7 @@ Car *createCarHeap(unsigned int *autonomies, int num_cars)
     }
 
     car_heap->size = i;
-    i = (car_heap->size - 2) / 2;
+    i = (int)(car_heap->size - 2) / 2;
     while (i >= 0)
     {
         heapifyDown(car_heap, i);
@@ -61,13 +61,14 @@ Car *createCarHeap(unsigned int *autonomies, int num_cars)
     return car_heap;
 }
 
-void insertHelper(Car *heap, int index)
+// Helper for the insertion of a new car in the heap
+void insertHelper(Car *heap, unsigned int index)
 {
-    int parent = (index - 1) / 2;
+    unsigned int parent = (index - 1) / 2;
 
     if (heap->autonomy[parent] < heap->autonomy[index])
     {
-        int temp = heap->autonomy[parent];
+        unsigned int temp = heap->autonomy[parent];
         heap->autonomy[parent] = heap->autonomy[index];
         heap->autonomy[index] = temp;
 
@@ -75,46 +76,39 @@ void insertHelper(Car *heap, int index)
     }
 }
 
-// Funzione per eseguire l'operazione di "heapify" (ristrutturazione) verso il basso
-void heapifyDown(Car *heap, int index)
+// Heapify down
+void heapifyDown(Car *heap, unsigned int index)
 {
-    int max = index;
-    int left = 2 * index + 1;
-    int right = 2 * index + 2;
+    unsigned int max = index;
+    int left = (int)(2 * index + 1);
+    int right = (int)(2 * index + 2);
 
-    // Checking whether our left or child element
-    // is at right index of not to avoid index error
     if (left >= heap->size || left < 0)
         left = -1;
     if (right >= heap->size || right < 0)
         right = -1;
 
-    // store left or right element in max if
-    // any of these is smaller that its parent
     if (left != -1 && heap->autonomy[left] > heap->autonomy[max])
         max = left;
     if (right != -1 && heap->autonomy[right] > heap->autonomy[max])
         max = right;
 
-    // Swapping the nodes
     if (max != index)
     {
-        int temp = heap->autonomy[max];
+        unsigned int temp = heap->autonomy[max];
         heap->autonomy[max] = heap->autonomy[index];
         heap->autonomy[index] = temp;
 
-        // recursively calling for their child elements
-        // to maintain max heap
         heapifyDown(heap, max);
     }
 }
 
-// Funzione per inserire una nuova autovettura nell'heap delle autonomie
-void insertCar(Car *heap, int autonomy)
+// Insert a car in the heap
+void insertCar(Car *heap, unsigned int autonomy)
 {
     heap->size++;
 
-    int index = heap->size - 1;
+    unsigned int index = heap->size - 1;
     heap->autonomy[index] = autonomy;
 
     insertHelper(heap, index);
@@ -122,12 +116,11 @@ void insertCar(Car *heap, int autonomy)
     printf("aggiunta\n");
 }
 
-// Funzione per rimuovere un'autovettura con un'autonomia specifica dall'heap
-void removeCarByAutonomy(Car *heap, int autonomy)
+// Remove a specific car from the heap
+void removeCarByAutonomy(Car *heap, unsigned int autonomy)
 {
     int index = -1;
 
-    // Cerca l'indice dell'autovettura con l'autonomia specificata
     for (int i = 0; i < heap->size; i++)
     {
         if (heap->autonomy[i] == autonomy)
@@ -143,24 +136,21 @@ void removeCarByAutonomy(Car *heap, int autonomy)
         return;
     }
 
-    // Sposta l'ultimo elemento nell'indice dell'elemento da rimuovere
     heap->autonomy[index] = heap->autonomy[heap->size - 1];
 
-    // Riduci la dimensione dell'heap
     heap->size--;
 
-    // Esegui l'operazione di heapify verso il basso dall'indice dell'elemento da rimuovere
     heapifyDown(heap, index);
 
     printf("rottamata\n");
 }
 
-// Funzione per inserire una nuova stazione nell'albero
-Station *insertStation(Station *root, int distance, Car *car_heap)
+// Insert a station in the tree
+Station *insertStation(Station *root, unsigned int distance, Car *car_heap)
 {
     if (root == NULL)
     {
-        root = createStationNode(distance, car_heap);
+        root = createStationNode(car_heap, distance);
         root->car_heap = car_heap;
         printf("aggiunta\n");
     }
@@ -181,7 +171,7 @@ Station *insertStation(Station *root, int distance, Car *car_heap)
     return root;
 }
 
-Station *removeStation(Station *root, int distance)
+Station *removeStation(Station *root, unsigned int distance)
 {
     if (root == NULL)
     {
@@ -199,9 +189,7 @@ Station *removeStation(Station *root, int distance)
     }
     else
     {
-        // Trovata la stazione da rimuovere
-
-        // Se ha al massimo un figlio o nessun figlio
+        //station found
         if (root->left == NULL)
         {
             Station *temp = root->right;
@@ -217,17 +205,14 @@ Station *removeStation(Station *root, int distance)
             return temp;
         }
 
-        // Se ha due figli, trova il successore in ordine (il più piccolo nel sottoalbero destro)
         Station *successor = root->right;
         while (successor->left != NULL)
         {
             successor = successor->left;
         }
 
-        // Copia il valore del successore nella stazione corrente
         root->distance = successor->distance;
 
-        // Rimuovi il successore
         root->right = removeStation(root->right, successor->distance);
 
         printf("demolita\n");
@@ -236,8 +221,8 @@ Station *removeStation(Station *root, int distance)
     return root;
 }
 
-// Funzione per trovare una stazione dato un percorso
-Station *findStation(Station *root, int distance)
+// Find a specific station
+Station *findStation(Station *root, unsigned int distance)
 {
     if (root == NULL || root->distance == distance)
     {
@@ -254,6 +239,8 @@ Station *findStation(Station *root, int distance)
     }
 }
 
+// Print a recap of the stations and cars
+// Helper to visualize if everything works
 void printStationRecap(Station *root)
 {
     if (root != NULL)
@@ -284,7 +271,6 @@ int main()
             unsigned int distance, number_of_vehicles;
             fscanf(stdin, "%u %u", &distance, &number_of_vehicles);
 
-            // Inside the "aggiungi-stazione" block
             if (number_of_vehicles > 0)
             {
                 unsigned int *car_autonomy = malloc(sizeof(int) * number_of_vehicles);
@@ -300,7 +286,7 @@ int main()
             }
             else
             {
-                root = insertStation(root, distance, NULL); // Passing NULL for car_heap
+                root = insertStation(root, distance, NULL);
             }
         }
         else if (strcmp(str, "demolisci-stazione") == 0)
@@ -339,10 +325,11 @@ int main()
         }
         else if (strcmp(str, "pianifica-percorso") == 0)
         {
+            printf("nessun percorso\n");
         }
     }
 
-    printStationRecap(root);
+    //printStationRecap(root);
 
     return 0;
 }
