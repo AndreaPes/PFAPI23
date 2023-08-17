@@ -1,15 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
-// Data structure for cars
+// Structure Definitions
 typedef struct Car {
     unsigned int *autonomy;
     unsigned int size;
     unsigned int capacity;
 } Car;
 
-// Data structure for stations
 typedef struct Station {
     unsigned int distance;
     Car *car_heap;
@@ -17,27 +17,48 @@ typedef struct Station {
     struct Station *right;
 } Station;
 
-Car *createCarHeap(const unsigned int *autonomies, unsigned int num_cars);
+typedef struct ListNode {
+    unsigned int dest;
+    struct ListNode* next;
+} ListNode;
 
-void heapifyUp(Car *heap, unsigned int index);
+typedef struct List {
+    ListNode* head;
+} List;
 
-void heapifyDown(Car *heap, unsigned int index);
+typedef struct Graph {
+    unsigned int size;
+    List* array;
+} Graph;
 
+// Helper Functions
 void swap(unsigned int *a, unsigned int *b) {
     unsigned int temp = *a;
     *a = *b;
     *b = temp;
 }
 
-// Creates a new node of the tree for the station
-Station *createStationNode(Car *heap, unsigned int distance) {
-    Station *newStation = (Station *) malloc(sizeof(Station));
-    newStation->distance = distance;
-    newStation->car_heap = heap;
-    newStation->left = NULL;
-    newStation->right = NULL;
-    return newStation;
-}
+// Car-related Functions
+Car *createCarHeap(const unsigned int *autonomies, unsigned int num_cars);
+void heapifyUp(Car *heap, unsigned int index);
+void heapifyDown(Car *heap, unsigned int index);
+void insertCar(Car *heap, unsigned int autonomy);
+void removeCarByAutonomy(Car *heap, unsigned int autonomy);
+
+// Station-related Functions
+Station *createStationNode(Car *heap, unsigned int distance);
+Station *insertStation(Station *root, unsigned int distance, Car *car_heap);
+Station *removeStation(Station *root, unsigned int distance);
+Station *findStation(Station *root, unsigned int distance);
+
+// Graph-related Functions
+ListNode* listNode(unsigned int dest);
+Graph* initializeGraph(unsigned int size);
+void addEdge(Graph* graph, unsigned int start, unsigned int end);
+void createGraph(Graph* graph, const unsigned int *array, const unsigned int *autonomy);
+void shortestPathBFS(Graph* graph, const unsigned int *distances_array);
+
+/***CAR***/
 
 Car *createCarHeap(const unsigned int *autonomies, unsigned int num_cars) {
 
@@ -95,15 +116,18 @@ void heapifyDown(Car *heap, unsigned int index) {
 void insertCar(Car *heap, unsigned int autonomy) {
     if (heap->size == heap->capacity) {
         heap->capacity *= 2;
-        heap->autonomy = (unsigned int *) realloc(heap->autonomy, heap->capacity * sizeof(unsigned int));
+        unsigned int *temp = (unsigned int *) realloc(heap->autonomy, heap->capacity * sizeof(unsigned int));
+
+        if (temp == NULL) {
+            return;
+        }
+
+        heap->autonomy = temp;
     }
 
     heap->autonomy[heap->size] = autonomy;
-
     heapifyUp(heap, heap->size);
-
     heap->size++;
-
     printf("aggiunta\n");
 }
 
@@ -130,6 +154,18 @@ void removeCarByAutonomy(Car *heap, unsigned int autonomy) {
     heapifyDown(heap, index);
 
     printf("rottamata\n");
+}
+
+/***STATION***/
+
+// Creates a new node of the tree for the station
+Station *createStationNode(Car *heap, unsigned int distance) {
+    Station *newStation = (Station *) malloc(sizeof(Station));
+    newStation->distance = distance;
+    newStation->car_heap = heap;
+    newStation->left = NULL;
+    newStation->right = NULL;
+    return newStation;
 }
 
 // Insert a station in the tree
@@ -203,35 +239,177 @@ Station *findStation(Station *root, unsigned int distance) {
     }
 }
 
-// Print a recap of the stations and cars
-// Helper to visualize if everything works
-void printStationRecap(Station *root) {
-    if (root != NULL) {
-        printStationRecap(root->left);
-        printf("Stazione a distanza %u:\n", root->distance);
-        printf("Size: %u\n", root->car_heap->size);
-        for (int i = 0; i < root->car_heap->size; i++) {
-            printf("- Auto con autonomia %u\n", root->car_heap->autonomy[i]);
+/***GRAPH***/
+
+ListNode* listNode(unsigned int dest) {
+    ListNode* newNode = (ListNode*) malloc(sizeof(ListNode));
+    newNode->dest = dest;
+    newNode->next = NULL;
+    return newNode;
+}
+
+Graph* initializeGraph(unsigned int size) {
+    Graph* graph = (Graph*) malloc(sizeof(Graph));
+    graph->size = size;
+    graph->array = (List*) malloc(size * sizeof(List));
+    for (int i = 0; i < size; i++)
+        graph->array[i].head = NULL;
+    return graph;
+}
+
+void addEdge(Graph* graph, unsigned  int start, unsigned int end) {
+    ListNode* newNode = listNode(end);
+    newNode->next = graph->array[start].head;
+    graph->array[start].head = newNode;
+}
+
+void createGraphUp(Graph* graph, const unsigned int *array, const unsigned int *autonomy) {
+    for(int i = 0; i < graph->size - 1; i++){
+        for(int k = i; k < graph->size - 1; k++){
+            if(autonomy[i] >= (array[k+1] - array[i])){
+                addEdge(graph, i, k+1);
+            } else {
+                break;
+            }
         }
-        printf("\n");
-        printStationRecap(root->right);
     }
 }
+
+void createGraphDown(Graph* graph, const unsigned int *array, const unsigned int *autonomy) {
+    for(int i = 0; i < graph->size - 1; i++){
+        for(int k = i; k < graph->size - 1; k++){
+            if(autonomy[i] >= (array[k+1] - array[i])){
+                addEdge(graph, i, k+1);
+            } else {
+                break;
+            }
+        }
+    }
+}
+
+void initializeArray(Station *root, unsigned int start, unsigned int end, unsigned int *array, unsigned int *autonomy, int *count) {
+    if (root == NULL) {
+        return;
+    }
+
+    if (start < end) {
+
+        if (start < root->distance) {
+            initializeArray(root->left, start, end, array, autonomy, count);
+        }
+        if (start <= root->distance && root->distance <= end) {
+            array[*count] = root->distance;
+            autonomy[*count] = root->car_heap->autonomy[0];
+            (*count)++;
+        }
+        if (root->distance < end) {
+            initializeArray(root->right, start, end, array, autonomy, count);
+        }
+    } else {
+
+        if (start > root->distance) {
+            initializeArray(root->right, start, end, array, autonomy, count);
+        }
+        if (end <= root->distance && root->distance <= start) {
+            array[*count] = root->distance;
+            autonomy[*count] = root->car_heap->autonomy[0];
+            (*count)++;
+
+        }
+        if (root->distance > end) {
+            initializeArray(root->left, start, end, array, autonomy, count);
+        }
+    }
+}
+
+void shortestPathBFS(Graph* graph, const unsigned int *distances_array) {
+    unsigned int size = graph->size;
+
+    bool visited[size];
+    unsigned int distance[size];
+    int predecessor[size];
+
+    for(unsigned int i = 0; i < size; i++) {
+        visited[i] = false;
+        distance[i] = __UINT8_MAX__;
+        predecessor[i] = -1;
+    }
+
+    unsigned int* queue = (unsigned int*)malloc(size * sizeof(unsigned int));
+    unsigned int head = 0, tail = 0;
+
+    visited[0] = true;
+    distance[0] = 0;
+    queue[tail++] = 0;
+
+    while (head < tail) {
+    unsigned int current = queue[--tail];
+    ListNode* temp = graph->array[current].head;
+
+    while (temp) {
+        if (!visited[temp->dest]) {
+            visited[temp->dest] = true;
+            distance[temp->dest] = distance[current] + 1;
+            queue[tail++] = temp->dest;
+            predecessor[temp->dest] = (int)current;
+
+            if (temp->dest == size-1) {
+
+                    unsigned int stack[size];
+                    int top = -1;
+
+                    int pathNode = (int)size-1;
+                    while (pathNode != -1) {
+                        stack[++top] = distances_array[pathNode];
+                        pathNode = predecessor[pathNode];
+                    }
+
+                    while (top != -1) {
+                        printf("%d ", stack[top--]);
+                    }
+                    printf("\n");
+                    free(queue);
+                    return;
+                }
+            }
+            temp = temp->next;
+        }
+    }
+    printf("nessun percorso\n");
+    free(queue);
+}
+
+void printGraph(Graph* graph, unsigned int *distance_array) {
+    for (unsigned int i = 0; i < graph->size; i++) {
+        ListNode* node = graph->array[i].head;
+        printf("\n Lista di adiacenza del nodo %u\n head", distance_array[i]);
+        while (node) {
+            printf(" -> %u", distance_array[node->dest]);
+            node = node->next;
+        }
+        printf("\n");
+    }
+}
+
 
 int main() {
     char str[100];
     Station *root = NULL;
+    int result = 0;
 
     while (fscanf(stdin, "%s", str) != EOF) {
+        if (result == EOF) {
+            printf("Error");
+        }
         if (strcmp(str, "aggiungi-stazione") == 0) {
 
             unsigned int distance, number_of_vehicles;
-            fscanf(stdin, "%u %u", &distance, &number_of_vehicles);
+            result = fscanf(stdin, "%u %u", &distance, &number_of_vehicles);
 
             unsigned int *car_autonomy = malloc(sizeof(int) * number_of_vehicles);
 
             for (int i = 0; i < number_of_vehicles; i++) {
-                fscanf(stdin, "%u", &car_autonomy[i]);
+                result = fscanf(stdin, "%u", &car_autonomy[i]);
             }
 
             Car *car_heap = createCarHeap(car_autonomy, number_of_vehicles);
@@ -239,11 +417,11 @@ int main() {
             root = insertStation(root, distance, car_heap);
         } else if (strcmp(str, "demolisci-stazione") == 0) {
             unsigned int distance;
-            fscanf(stdin, "%u", &distance);
+            result = fscanf(stdin, "%u", &distance);
             root = removeStation(root, distance);
         } else if (strcmp(str, "aggiungi-auto") == 0) {
             unsigned int distance, autonomy;
-            fscanf(stdin, "%u %u", &distance, &autonomy);
+            result = fscanf(stdin, "%u %u", &distance, &autonomy);
 
             Station *station = findStation(root, distance);
             if (station == NULL) {
@@ -254,7 +432,7 @@ int main() {
             insertCar(station->car_heap, autonomy);
         } else if (strcmp(str, "rottama-auto") == 0) {
             unsigned int distance, autonomy;
-            fscanf(stdin, "%u %u", &distance, &autonomy);
+            result = fscanf(stdin, "%u %u", &distance, &autonomy);
 
             Station *station = findStation(root, distance);
             if (station == NULL) {
@@ -264,11 +442,26 @@ int main() {
 
             removeCarByAutonomy(station->car_heap, autonomy);
         } else if (strcmp(str, "pianifica-percorso") == 0) {
-            printf("nessun percorso\n");
+            unsigned int start, end;
+            result = fscanf(stdin, "%u %u", &start, &end);
+            if(start < end){
+                unsigned int distances_array[end-start];
+                unsigned int autonomy[end-start];
+                int count = 0;
+                initializeArray(root, start, end, distances_array, autonomy, &count);
+                Graph * graph = initializeGraph(count);
+                createGraphUp(graph, distances_array, autonomy);
+                //printGraph(graph, distances_array);
+                shortestPathBFS(graph, distances_array);
+            } else if (start > end) {
+                unsigned int distances_array[start-end];
+                unsigned int autonomy[start-end];
+                int count = 0;
+                initializeArray(root, start, end, distances_array, autonomy, &count);
+            } else {
+                printf("%u\n", start);
+            }
         }
     }
-
-    //printStationRecap(root);
-
     return 0;
 }
