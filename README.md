@@ -1,15 +1,15 @@
-# Prova finale di algoritmi e strutture dati 2022-2023
+# Final Exam in Algorithms and Data Structures 2022-2023
 
 ---
 
-### Descrizione del Progetto
+### Project Description
 
-"Pianifica Percorso" è un programma per pianificare viaggi ottimali su un'autostrada con stazioni di servizio dotate di veicoli elettrici a noleggio. Ogni stazione ha una distanza univoca dall'inizio dell'autostrada e veicoli con autonomie specifiche. Il programma permette di aggiungere e rimuovere stazioni e veicoli, e di pianificare percorsi ottimali tra due stazioni minimizzando il numero di tappe.
+"Pianifica Percorso" is a program designed to plan optimal trips on a highway with service stations equipped with electric rental vehicles. Each station is located at a unique distance from the start of the highway and has vehicles with specific ranges. The program allows for adding and removing stations and vehicles, as well as planning optimal routes between two stations while minimizing the number of stops.
 
-#### Comandi Supportati
+#### Supported Commands
 
-1. **aggiungi-stazione**: Aggiunge una stazione con veicoli specifici.
-2. **demolisci-stazione**: Rimuove una stazione.
-3. **aggiungi-auto**: Aggiunge un veicolo a una stazione.
-4. **rottama-auto**: Rimuove un veicolo da una stazione.
-5. **pianifica-percorso**: Pianifica il percorso ottimale tra due stazioni.
+1. **aggiungi-stazione**: Adds a station with specific vehicles.
+2. **demolisci-stazione**: Removes a station.
+3. **aggiungi-auto**: Adds a vehicle to a station.
+4. **rottama-auto**: Removes a vehicle from a station.
+5. **pianifica-percorso**: Plans the optimal route between two stations.
